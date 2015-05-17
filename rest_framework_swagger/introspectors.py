@@ -775,6 +775,9 @@ class YAMLDocstringParser(object):
     parameters_strategy: merge
     omit_parameters:
         - path
+    hide_parameters:
+        - foo_hide1
+        - foo_hide2
     parameters:
         - name: name
           description: Foobar long description goes here
@@ -1051,6 +1054,8 @@ class YAMLDocstringParser(object):
                 if param['paramType'] != 'path':
                     param['required'] = False
 
+        parameters = [param for param in parameters if self.should_hide_parameter(param['name'])]
+
         return parameters
 
     def should_omit_parameters(self, param_type):
@@ -1058,6 +1063,12 @@ class YAMLDocstringParser(object):
         Checks if particular parameter types should be omitted explicitly
         """
         return param_type in self.object.get('omit_parameters', [])
+
+    def should_hide_parameter(self, param_name):
+        """
+        Checks if particular parameter should be omitted
+        """
+        return param_name in self.object.get('hide_parameters', [])
 
     def should_omit_serializer(self):
         """

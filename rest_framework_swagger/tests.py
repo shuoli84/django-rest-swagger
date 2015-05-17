@@ -1363,6 +1363,36 @@ class YAMLDocstringParserTests(TestCase):
 
         self.assertEqual(0, len(params))
 
+    def test_hide_parameters(self):
+        class SerializedAPI(ListCreateAPIView):
+            serializer_class = CommentSerializer
+
+            def post(self, request, *args, **kwargs):
+                """
+                My post view with custom post parameters
+
+                ---
+                hide_parameters:
+                    - email
+                parameters:
+                    - name: name
+                      type: string
+                      required: true
+                    - name: email
+                      type: string
+                      required: true
+                """
+                return super(SerializedAPI, self).post(
+                    request, *args, **kwargs)
+
+        class_introspector = self.make_introspector(SerializedAPI)
+        introspector = APIViewMethodIntrospector(class_introspector, 'POST')
+        parser = introspector.get_yaml_parser()
+        params = parser.discover_parameters(introspector)
+
+        self.assertEqual(1, len(params))
+
+
     def test_complex_parameters_strategy(self):
         class SerializedAPI(ListCreateAPIView):
             serializer_class = CommentSerializer
